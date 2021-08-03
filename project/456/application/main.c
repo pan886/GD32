@@ -1,0 +1,208 @@
+/*!
+    \file  main.c
+    \brief TIMER2 PWM input capture demo
+
+    \version 2019-6-5, V1.0.0, firmware for GD32VF103
+*/
+
+/*
+    Copyright (c) 2019, GigaDevice Semiconductor Inc.
+
+    Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    1. Redistributions of source code must retain the above copyright notice, this
+       list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
+    3. Neither the name of the copyright holder nor the names of its contributors
+       may be used to endorse or promote products derived from this software without
+       specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+OF SUCH DAMAGE.
+*/
+
+#include "gd32vf103.h"
+#include "gd32vf103_timer.h"
+#include "gd32vf103_gpio.h"
+#include "gd32vf103_usart.h"
+#include "n200_func.h"
+#include <stdio.h>
+#include "gd32vf103_dac.h"
+#include "gd32vf103_i2c.h"
+#include "gd32vf103v_rvstar.h"
+#include "mpu.h"
+#include "i2c.h"
+#include "gd32vf103_eclic.h"
+#include "gd32vf103_bkp.h"
+void user_key_exti_config();
+void soc_timer_config();
+
+/**
+    \brief      main function
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+int main(void)
+{
+    uint8_t timer_intlevel=1;
+    uint8_t exti_intlevel =2;//higher
+    int32_t returnCode;
+
+    /* Board Config */
+    gd_rvstar_led_init(LED3);
+    gd_rvstar_led_init(LED1);
+    gd_rvstar_led_init(LED2);
+
+    gd_rvstar_key_init(WAKEUP_KEY_GPIO_PORT,KEY_MODE_EXTI);
+
+    /* Timer Config */
+    soc_timer_config();
+
+    /* EXIT config */
+    user_key_exti_config();
+
+    /* ECLIC config */
+    returnCode = ECLIC_Register_IRQ(EXTI0_IRQn, ECLIC_NON_VECTOR_INTERRUPT,
+                    ECLIC_LEVEL_TRIGGER, exti_intlevel, 0, NULL);
+    returnCode = ECLIC_Register_IRQ(TIMER1_IRQn, ECLIC_NON_VECTOR_INTERRUPT,
+                    ECLIC_LEVEL_TRIGGER, timer_intlevel, 0, NULL);
+
+    /* Enable interrupts in general */
+    __enable_irq();
+
+    /* Timer Start */
+    timer_enable(TIMER1);
+
+    /* RGB Control */
+    while(1)
+    {
+    	/* set led to RED */
+    	gd_rvstar_led_off(LED2);
+    	gd_rvstar_led_off(LED1);
+    	gd_rvstar_led_on(LED3);
+    }
+
+    return 0;
+}
+
+
+/**
+    \brief      configure the TIMER peripheral
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+void soc_timer_config()
+{
+    timer_parameter_struct timer_initpara;
+
+    /* ----------------------------------------------------------------------------
+    TIMER1 Configuration:
+    TIMER1CLK = SystemCoreClock/54000 = 2KHz.
+    TIMER1CAR = 20000
+    ---------------------------------------------------------------------------- */
+    rcu_periph_clock_enable(RCU_TIMER1);
+
+    timer_deinit(TIMER1);
+
+    timer_update_source_config(TIMER1, TIMER_UPDATE_SRC_REGULAR);
+
+    /* initialize TIMER init parameter struct */
+    timer_struct_para_init(&timer_initpara);
+    /* TIMER1 configuration */
+    timer_initpara.prescaler         = 53999;
+    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
+    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.period            = 20000;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
+    timer_init(TIMER1, &timer_initpara);
+
+    timer_interrupt_enable(TIMER1, TIMER_INT_UP);
+
+}
+
+
+/**
+    \brief      configure the EXTI peripheral for user key
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+void user_key_exti_config()
+{
+    /* enable the AF clock */
+    rcu_periph_clock_enable(RCU_AF);
+
+    /* connect EXTI line to key GPIO pin */
+    gpio_exti_source_select(WAKEUP_KEY_EXTI_PORT_SOURCE, WAKEUP_KEY_EXTI_PIN_SOURCE);//PA0 wakeup
+
+    /* configure key EXTI line */
+    exti_init(EXTI_0, EXTI_INTERRUPT, EXTI_TRIG_FALLING);
+    exti_interrupt_flag_clear(EXTI_0);
+}
+
+/**
+    \brief      EXTI line0 interrupt service routine
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+void EXTI0_IRQHandler()
+{
+
+    if (SET == exti_interrupt_flag_get(WAKEUP_KEY_PIN)){
+
+        if(RESET == gd_rvstar_key_state_get(KEY_WAKEUP))//io input state
+        {
+
+            /* clear EXTI lines interrupt flag */
+            exti_interrupt_flag_clear(WAKEUP_KEY_PIN);
+
+            /* set led to BLUE */
+            gd_rvstar_led_on(LED3);
+            gd_rvstar_led_on(LED1);
+            gd_rvstar_led_on(LED2);
+            delay_1ms(1000);
+        }
+    }
+
+}
+
+/**
+    \brief      TIMER1 interrupt service routine
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+void TIMER1_IRQHandler()
+{
+    uint16_t cnt;
+
+    if(SET == timer_interrupt_flag_get(TIMER1, TIMER_INT_FLAG_UP)){
+        /* clear update interrupt bit */
+        timer_interrupt_flag_clear(TIMER1, TIMER_INT_FLAG_UP);
+
+    	for(cnt = 0; cnt < 5; cnt++)
+    	{
+        	/* set led to GREEN */
+        	gd_rvstar_led_off(LED3);
+        	gd_rvstar_led_off(LED2);
+    		gd_rvstar_led_on(LED1);
+    		delay_1ms(1000);
+    	}
+
+    }
+}
+
