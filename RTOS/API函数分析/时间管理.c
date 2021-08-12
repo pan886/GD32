@@ -12,7 +12,7 @@
 			configASSERT( uxSchedulerSuspended == 0 );
 			vTaskSuspendAll();//挂起任务调度器
 			{
-				traceTASK_DELAY();
+				traceTASK_DELAY();//hook宏，没有用，应该是作为系统保留的功能
 
 				/* A task that is removed from the event list while the
 				scheduler is suspended will not get placed in the ready
@@ -73,7 +73,7 @@
 				actually delay is if the wake time has also	overflowed,
 				and the wake time is greater than the tick time.  When this
 				is the case it is as if neither time had overflowed. */
-				if( ( xTimeToWake < *pxPreviousWakeTime ) && ( xTimeToWake > xConstTickCount ) )
+				if( ( xTimeToWake < *pxPreviousWakeTime ) && ( xTimeToWake > xConstTickCount ) )//溢出情况
 				{
 					xShouldDelay = pdTRUE;
 				}
@@ -87,7 +87,7 @@
 				/* The tick time has not overflowed.  In this case we will
 				delay if either the wake time has overflowed, and/or the
 				tick time is less than the wake time. */
-				if( ( xTimeToWake < *pxPreviousWakeTime ) || ( xTimeToWake > xConstTickCount ) )
+				if( ( xTimeToWake < *pxPreviousWakeTime ) || ( xTimeToWake > xConstTickCount ) )//正常情况
 				{
 					xShouldDelay = pdTRUE;
 				}
