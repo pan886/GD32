@@ -183,38 +183,6 @@ void start_task1(void *pvParameters)
     printf("Enter to task_1\r\n");
     while (1) {
 
-#if 0
-    	if(gd_key_state_get(KEY_WAKEUP))
-    	{
-    		//xy=gd_key_state_get(KEY_WAKEUP);
-    		count++;
-    		//if(count%3==1)
-    		{
-    			gd_led_on(LED1);
-    			gd_led_off(LED2);
-    			// xTimerStart(xExampleSoftwareTimer, 0);
-    			 err = xSemaphoreGive(countSemaphore);
-    			 //
-
-    		}
-    		//if((count%3==2))
-    		{
-    		//	gd_led_off(LED1);
-    		//	xTimerStop(xExampleSoftwareTimer,0);
-    		}
-    		if(count>1000)
-    			count =0;
-
-    	}
-#endif
-
-
-
-
-    	//conut_tick =xTaskGetTickCount();
-      //  printf("task1 is running %d.....\r\n", cnt++);
-       // printf("conut_tick= %d.....\r\n", conut_tick);
-     //   vTaskDelayUntil(10,1);
         vTaskDelay(100);
     }
 }
@@ -226,16 +194,7 @@ void start_task2(void *pvParameters)
 
     while (1) {
 
-//    	if(gpio_input_bit_get(GPIOA,BIT(5) ))
-//    	{
-//    		xy=gpio_input_bit_get(GPIOA,BIT(5) );
-//    		gd_led_on(LED2);
-//    		gd_led_off(LED1);
-//    		 xSemaphoreTake(countSemaphore,portMAX_DELAY);
-//    		 semavalue = uxSemaphoreGetCount(countSemaphore);
-//    	}
 
-     //   printf("task2 is running %d.....\r\n", cnt++);
     	printf("turn off the interupt\n");
     	portDISABLE_INTERRUPTS();
     	delay();
