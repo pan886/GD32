@@ -165,6 +165,8 @@ configIDLE_TASK_NAME in FreeRTOSConfig.h. */
 	#define taskRECORD_READY_PRIORITY( uxPriority )	portRECORD_READY_PRIORITY( uxPriority, uxTopReadyPriority )
 
 	/*-----------------------------------------------------------*/
+	/*2021/8/13*/
+	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxTopReadyPriority ) = (31UL-__CLZ(uxTopReadyPriority))
 
 	#define taskSELECT_HIGHEST_PRIORITY_TASK()														\
 	{																								\
@@ -175,6 +177,8 @@ configIDLE_TASK_NAME in FreeRTOSConfig.h. */
 		configASSERT( listCURRENT_LIST_LENGTH( &( pxReadyTasksLists[ uxTopPriority ] ) ) > 0 );		\
 		listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB, &( pxReadyTasksLists[ uxTopPriority ] ) );		\
 	} /* taskSELECT_HIGHEST_PRIORITY_TASK() */
+
+
 
 	/*-----------------------------------------------------------*/
 

@@ -79,7 +79,7 @@ your application. */
 #define USER_MODE_TASKS                         0
 
 #define configUSE_PREEMPTION                    1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_TICKLESS_IDLE                 0
 #define configCPU_CLOCK_HZ                      SystemCoreClock
 #define configRTC_CLOCK_HZ                      32768
