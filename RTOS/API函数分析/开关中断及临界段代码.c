@@ -72,7 +72,8 @@ portFORCE_INLINE static uint8_t ulPortRaiseBASEPRI( void )
 
     ulOriginalBASEPRI = ECLIC_GetMth();
     ECLIC_SetMth(uxMaxSysCallMTH);//设置阈值为255
-    __RWMB();// __FENCE(iorw,iorw),Fence on all memory and I/O
+    __RWMB();// __FENCE(iorw,iorw),Fence on all memory and I/O用于屏障数据存储器访问的执行顺序
+	/*I:设备读 O：设备写  R：存储器读 W：存储器写*/
 
     /* This return might not be reached but is necessary to prevent compiler
     warnings. */

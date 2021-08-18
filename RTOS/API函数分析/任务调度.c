@@ -166,3 +166,34 @@ BaseType_t xPortStartScheduler( void )
 
 
 
+taskYIELD() 任务切换函数
+#define taskYIELD()					portYIELD()
+/* Scheduler utilities. */
+#define portYIELD()                                                             \
+{                                                                               \
+    /* Set a software interrupt(SWI) request to request a context switch. */    \
+    SysTimer_SetSWIRQ();                                                        \
+    /* Barriers are normally not required but do ensure the code is completely  \
+    within the specified behaviour for the architecture. */                     \
+    __RWMB();                                                                   \
+}
+
+
+/**
+ * \brief  Trigger or set software interrupt via system timer
+ * \details
+ * This function set the system timer MSIP bit in MSIP register.
+ * \remarks
+ * - Set system timer MSIP bit and generate a SW interrupt.
+ * - \ref SysTimer_ClearSWIRQ
+ * - \ref SysTimer_GetMsipValue
+ */
+__STATIC_FORCEINLINE void SysTimer_SetSWIRQ(void)
+{
+    SysTimer->MSIP |= SysTimer_MSIP_MSIP_Msk;
+}
+/*TIMER 可以用于生成软件中断。TIMER 中实现了一个 msip 寄存器，msip寄存器只有最低位为有效位，
+该有效位直接作为软件中断，因此：软件写通过写1至msip寄存器产生软件中断
+抢占式调度器会在时钟节拍中断中进行任务切换*/
+
+
