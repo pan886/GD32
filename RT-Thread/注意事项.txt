@@ -1,0 +1,1 @@
+如果要使用rt_thread_create()，必须在rtconfig.h中#define RT_USING_HEAP，则可以使用动态内存分配
