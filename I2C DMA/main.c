@@ -55,7 +55,7 @@ OF SUCH DAMAGE.
 #define I2C1_DATA_ADDRESS        0x40005810
 #define BUFFER_SIZE             (ARRAYNUM(i2c0_buff_tx)-1)
 
-uint8_t i2c0_buff_tx[] = "I2C DMA test";
+uint8_t i2c0_buff_tx[] = "abcdefg";
 uint8_t i2c1_buff_rx[BUFFER_SIZE];
 __IO ErrStatus state = ERROR;
 uint32_t ctl0,ctl1,SADDR0,SADDR1,DATA,STAT0,STAT1,CKCFG,RT;
@@ -86,7 +86,7 @@ int main(void)
 
     dma_init_struct.direction = DMA_PERIPHERAL_TO_MEMORY;
     dma_init_struct.memory_addr = (uint32_t)i2c1_buff_rx;
-    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_ENABLE;
+    dma_init_struct.memory_inc = DMA_MEMORY_INCREASE_DISABLE;
     dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;
     dma_init_struct.number = BUFFER_SIZE;
     dma_init_struct.periph_addr = I2C1_DATA_ADDRESS;
@@ -114,15 +114,7 @@ int main(void)
 
     /* send slave address to I2C bus*/
     i2c_master_addressing(I2C0, I2C1_SLAVE_ADDRESS7, I2C_TRANSMITTER);
-#if 1
-    ctl0 =  I2C_CTL0(I2C0);
-    ctl1 =  I2C_CTL1(I2C0);
-    SADDR0 = I2C_SADDR0(I2C0);
-    SADDR1 = I2C_SADDR1(I2C0);
-    DATA =  I2C_DATA(I2C0);
-    STAT0 = I2C_STAT0(I2C0);
-    STAT1 = I2C_STAT1(I2C0);
-    CKCFG = I2C_CKCFG(I2C0);
+
 
     /* wait until ADDSEND bit is set*/
     while(!i2c_flag_get(I2C1, I2C_FLAG_ADDSEND));
@@ -130,7 +122,7 @@ int main(void)
     /* clear ADDSEND bit */
     i2c_flag_clear(I2C0, I2C_FLAG_ADDSEND);
     i2c_flag_clear(I2C1, I2C_FLAG_ADDSEND);
-#endif
+
     /* enable I2C1 DMA */
     i2c_dma_enable(I2C1, I2C_DMA_ON);
     /* enable I2C0 DMA */
@@ -139,7 +131,7 @@ int main(void)
     dma_channel_enable(DMA0, DMA_CH4);
     /* enable DMA0 channel5 */
     dma_channel_enable(DMA0, DMA_CH5);
-
+#if 1
     /* DMA0 channel4 full transfer finish flag */
     while(!dma_flag_get(DMA0, DMA_CH4, DMA_FLAG_FTF));
     /* DMA0 channel5 full transfer finish flag */
@@ -152,7 +144,7 @@ int main(void)
     while(!i2c_flag_get(I2C1, I2C_FLAG_STPDET));
     /* clear the STPDET bit */
     i2c_enable(I2C1);
-
+#endif
     state = memory_compare(i2c0_buff_tx, i2c1_buff_rx, BUFFER_SIZE);
     if(SUCCESS == state){
         gd_rvstar_led_on(LED2);
@@ -161,7 +153,11 @@ int main(void)
         gd_rvstar_led_off(LED2);
         gd_rvstar_led_off(LED3);
     }
-    while(1);
+    while(1)
+    {
+    	DATA =    I2C_DATA(I2C0);
+    };
+
 }
 
 /*!
