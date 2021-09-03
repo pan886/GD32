@@ -1,6 +1,6 @@
 /*!
     \file  main.c
-    \brief ADC channel of temperature and Vref
+    \brief TIMER2 PWM input capture demo
 
     \version 2019-6-5, V1.0.0, firmware for GD32VF103
 */
@@ -33,10 +33,19 @@ OF SUCH DAMAGE.
 */
 
 #include "gd32vf103.h"
-#include "systick.h"
+#include "gd32vf103_timer.h"
+#include "gd32vf103_gpio.h"
+#include "gd32vf103_usart.h"
+#include "n200_func.h"
 #include <stdio.h>
-//#include "gd32vf103v_eval.h"
-#include "nuclei_sdk_soc.h"
+#include "gd32vf103_dac.h"
+#include "gd32vf103_i2c.h"
+#include "gd32vf103v_rvstar.h"
+#include "mpu.h"
+#include "i2c.h"
+#include "gd32vf103_eclic.h"
+#include "gd32vf103_bkp.h"
+#include "gd32vf103_dma.h"
 float temperature;
 float vref_value;
 
@@ -72,13 +81,7 @@ int main(void)
         temperature = (1.42 - ADC_IDATA0(ADC0)*3.3/4096) * 1000 / 4.3 + 25;
         vref_value = (ADC_IDATA1(ADC0) * 3.3 / 4096);
 
-        temperature_i = (uint16_t)(temperature*1000);
-        vref_value_i = (uint16_t)(vref_value*1000);
 
-        /* value print */
-        printf(" the temperature data is %d\r\n", (uint16_t)temperature);
-        //printf(" the reference voltage data is (%d/1000)V \r\n", vref_value_i);
-        printf(" \r\n");
     }
 
 }
