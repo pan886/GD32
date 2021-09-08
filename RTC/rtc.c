@@ -33,7 +33,8 @@ OF SUCH DAMAGE.
 */
 
 #include "rtc.h"
-
+#include "gd32vf103_usart.h"
+#include "gd32vf103_rtc.h"
 /* enter the second interruption,set the second interrupt flag to 1 */
 __IO uint32_t timedisplay;
 
@@ -73,6 +74,7 @@ void rtc_configuration(void)
 
     /* enable the RTC second interrupt*/
     rtc_interrupt_enable(RTC_INT_SECOND);
+    rtc_interrupt_enable(RTC_INT_ALARM);
 
     /* wait until last write operation on RTC registers has finished */
     rtc_lwoff_wait();
@@ -92,27 +94,9 @@ void rtc_configuration(void)
 */
 uint32_t time_regulate(void)
 {
-    uint32_t tmp_hh = 0xFF, tmp_mm = 0xFF, tmp_ss = 0xFF;
-
-    printf("\r\n==============Time Settings=====================================");
-    printf("\r\n  Please Set Hours");
-
-    while (tmp_hh == 0xFF){
-        tmp_hh = usart_scanf(23);
-    }
-    printf(":  %d", tmp_hh);
-    printf("\r\n  Please Set Minutes");
-    while (tmp_mm == 0xFF){
-        tmp_mm = usart_scanf(59);
-    }
-    printf(":  %d", tmp_mm);
-    printf("\r\n  Please Set Seconds");
-    while (tmp_ss == 0xFF){
-        tmp_ss = usart_scanf(59);
-    }
-    printf(":  %d", tmp_ss);
 
     /* return the value  store in RTC counter register */
+    uint32_t tmp_hh = 14, tmp_mm = 40, tmp_ss = 53;
     return((tmp_hh*3600 + tmp_mm*60 + tmp_ss));
 }
 
