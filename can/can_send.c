@@ -1,9 +1,8 @@
 /*!
     \file  main.c
-    \brief communication_among_Devices in normal mode
+    \brief TIMER2 PWM input capture demo
 
     \version 2019-6-5, V1.0.0, firmware for GD32VF103
-
 */
 
 /*
@@ -32,19 +31,30 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 OF SUCH DAMAGE.
 */
-
+ #define __WEAK                                 __attribute__((weak))
 #include "gd32vf103.h"
-#include "gd32vf103_can.h"
-#include "gd32vf103_eclic.h"
+#include "gd32vf103_timer.h"
 #include "gd32vf103_gpio.h"
 #include "gd32vf103_usart.h"
+#include "n200_func.h"
 #include <stdio.h>
-
-
+#include "gd32vf103_dac.h"
+#include "gd32vf103_i2c.h"
+#include "gd32vf103v_rvstar.h"
+#include "mpu.h"
+#include "i2c.h"
+#include "gd32vf103_eclic.h"
+#include "gd32vf103_bkp.h"
+#include "gd32vf103_dma.h"
+#define BKP_DATA_REG_NUM              42
 /* select can */
 #define CAN0_USED
 //#define CAN1_USED
-
+FlagStatus can0_receive_flag;
+FlagStatus can1_receive_flag;
+FlagStatus can0_error_flag;
+FlagStatus can1_error_flag;
+int sb=0;
 #ifdef  CAN0_USED
     #define CANX CAN0
 #else
@@ -55,7 +65,7 @@ FlagStatus receive_flag;
 uint8_t transmit_number = 0x0;
 can_receive_message_struct receive_message;
 can_trasnmit_message_struct transmit_message;
-
+can_trasnmit_message_struct transmit_message2;
 void clic_config(void);
 void led_config(void);
 void gpio_config(void);
@@ -93,23 +103,43 @@ int main(void)
     can_networking_init();
 
     /* enable CAN receive FIFO1 not empty interrupt */
-    can_interrupt_enable(CANX, CAN_INT_RFNE1);
+    can_interrupt_enable(CAN0, CAN_INT_RFNE1);
 
     /* initialize transmit message */
     can_struct_para_init(CAN_TX_MESSAGE_STRUCT, &transmit_message);
-    transmit_message.tx_sfid = 0x321;
+    transmit_message.tx_sfid = 0x1231;
     transmit_message.tx_efid = 0x01;
     transmit_message.tx_ft = CAN_FT_DATA;
-    transmit_message.tx_ff = CAN_FF_STANDARD;
-    transmit_message.tx_dlen = 1;
-    for(i =0;i<8;i++)
-    transmit_message.tx_data[i]=0x5a;
+    transmit_message.tx_ff = CAN_FF_EXTENDED;
+    transmit_message.tx_dlen = 8;
+
+    transmit_message2.tx_sfid = 0x622f;
+    transmit_message2.tx_efid = 0x01;
+    transmit_message2.tx_ft = CAN_FT_DATA;
+    transmit_message2.tx_ff = CAN_FF_EXTENDED;
+    transmit_message2.tx_dlen = 8;
+   // for(i =0;i<8;i++)
+
+    transmit_message.tx_data[1]=0x5b;
+    transmit_message.tx_data[2]=0x5c;
+    transmit_message.tx_data[3]=0x5d;
+    transmit_message.tx_data[4]=0x6a;
+    transmit_message.tx_data[5]=0x6b;
+    transmit_message.tx_data[6]=0x6c;
+    transmit_message.tx_data[7]=0x6d;
+
+
+    transmit_message2.tx_data[1]=0x1;
+    transmit_message2.tx_data[2]=0x2;
+    transmit_message2.tx_data[3]=0x3;
    // printf("\r\nplease press the CET key to transmit data!\r\n");
 
     /* initialize receive message */
     can_struct_para_init(CAN_RX_MESSAGE_STRUCT, &receive_message);
 
     while(1){
+    	i++;
+    	  transmit_message.tx_data[0]=0x5a+i;
         /* waiting for the CET key pressed */
       //  while(0 == gd_eval_key_state_get(KEY_CET))
         //{
@@ -120,7 +150,8 @@ int main(void)
               //  transmit_message.tx_data[0] = transmit_number++;
               //  printf("\r\ntransmit data: %x\r\n", transmit_message.tx_data[0]);
                 /* transmit message */
-                can_message_transmit(CAN0, &transmit_message);
+             //  can_message_transmit(CAN0, &transmit_message);
+              //  can_message_transmit(CAN0, &transmit_message2);
                 delay();
                 /* waiting for CET key up */
                // while(0 == gd_eval_key_state_get(KEY_CET));
@@ -149,7 +180,7 @@ void can_networking_init(void)
     can_filter_parameter_struct     can_filter;
 
     can_struct_para_init(CAN_INIT_STRUCT, &can_parameter);
-    can_struct_para_init(CAN_FILTER_STRUCT, &can_filter);
+   // can_struct_para_init(CAN_FILTER_STRUCT, &can_filter);
 
     /* initialize CAN register */
     can_deinit(CANX);
@@ -180,12 +211,12 @@ void can_networking_init(void)
     /* initialize filter */
     can_filter.filter_mode = CAN_FILTERMODE_MASK;
     can_filter.filter_bits = CAN_FILTERBITS_32BIT;
-    can_filter.filter_list_high = 0x0000;
+   can_filter.filter_list_high = 0x0000;
     can_filter.filter_list_low = 0x0000;
     can_filter.filter_mask_high = 0x0000;
     can_filter.filter_mask_low = 0x0000;
     can_filter.filter_fifo_number = CAN_FIFO1;
-    can_filter.filter_enable = ENABLE;
+   can_filter.filter_enable = ENABLE;
     can_filter_init(&can_filter);
 }
 
@@ -198,13 +229,13 @@ void can_networking_init(void)
 void clic_config(void)
 {
     eclic_global_interrupt_enable();
-#ifdef  CAN0_USED
+
     /* configure CAN0 CLIC */
     eclic_irq_enable(CAN0_RX1_IRQn,1,0);
-#else
+
     /* configure CAN1 CLIC */
     eclic_irq_enable(CAN1_RX1_IRQn,1,0);
-#endif
+
 
 }
 
@@ -262,10 +293,15 @@ void gpio_config(void)
     gpio_pin_remap_config(GPIO_CAN1_REMAP,ENABLE);
 }
 
-/* retarget the C library printf function to the usart */
-int fputc(int ch, FILE *f)
+/*!
+    \brief      this function handles CAN0 RX0 exception
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+void CAN0_RX1_IRQHandler(void)
 {
-//    usart_data_transmit(EVAL_COM0, (uint8_t) ch);
-//    while (RESET == usart_flag_get(EVAL_COM0, USART_FLAG_TBE));
-//    return ch;
+    /* check the receive message */
+    can_message_receive(CAN0, CAN_FIFO1, &receive_message);
+
 }
