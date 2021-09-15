@@ -141,7 +141,7 @@ int main(void)
     	i++;
     	  transmit_message.tx_data[0]=0x5a+i;
         /* waiting for the CET key pressed */
-      //  while(0 == gd_eval_key_state_get(KEY_CET))
+
         //{
             /* if transmit_number is 0x10, set it to 0x00 */
            // if(transmit_number == 0x10){
