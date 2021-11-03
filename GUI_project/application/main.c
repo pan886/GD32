@@ -1,0 +1,744 @@
+
+#include "gd32vf103.h"
+#include "gd32vf103_timer.h"
+#include "gd32vf103_gpio.h"
+#include "gd32vf103_usart.h"
+
+#include <stdio.h>
+#include "gd32vf103_dac.h"
+#include "gd32vf103_i2c.h"
+#include "gd32vf103v_rvstar.h"
+#include "n200_func.h"
+
+
+#include "gd32vf103_bkp.h"
+#include "gd32vf103_dma.h"
+
+#include "gd32vf103.h"
+
+#include "nuclei_sdk_soc.h"
+#include "gd32vf103v_rvstar.h"
+#include "gd32vf103.h"
+#include "gd32vf103_exmc.h"
+
+#include "gd32vf103_rcu.h"
+#include "gui_28.h"
+#include "gd32vf103.h"
+#include "exmc_lcd.h"
+#include "ili9320.h"
+#include "picture.h"
+#include "lcd.h"
+#include "touch.h"
+#include "ugui.h"
+//#include "lvgl.h"
+//#include "lv_conf.h"
+u16 touch_x = 0;
+u16 touch_y = 0;
+u16 touch_x_T =0;
+u16 touch_y_T =0;
+uint16_t device_code;
+char_format_struct char_format;
+
+/*!
+    \brief      main function
+    \param[in]  none
+    \param[out] none
+    \retval     none
+*/
+#define gimage   1
+#if gimage
+const unsigned char gImage_qq[3200] = { /* 0X00,0X10,0X28,0X00,0X28,0X00,0X01,0X1B, */
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XBE,0XF7,
+0XFF,0XFF,0XDE,0XFF,0X38,0XC6,0X92,0X8C,0X8E,0X6B,0X6E,0X6B,0X10,0X7C,0X96,0XAD,
+0X3C,0XE7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X5D,0XEF,
+0X15,0X9D,0X4F,0X63,0X6C,0X42,0X0A,0X32,0X88,0X29,0X46,0X19,0X25,0X19,0X45,0X21,
+0XE8,0X31,0X8E,0X6B,0X38,0XC6,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X36,0XA5,0X10,0X53,
+0X10,0X4B,0X51,0X53,0X0F,0X4B,0X6C,0X3A,0XE9,0X31,0X67,0X21,0X25,0X19,0XE4,0X10,
+0XA3,0X08,0X62,0X00,0X83,0X08,0XCB,0X52,0X9A,0XD6,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X3C,0XE7,0X70,0X63,0XB3,0X63,0XB8,0X7C,
+0XF5,0X63,0X11,0X43,0X4D,0X32,0XEA,0X29,0X88,0X21,0X26,0X19,0X05,0X19,0X05,0X19,
+0X04,0X11,0X04,0X11,0XE4,0X10,0X83,0X00,0XA3,0X08,0X72,0X8C,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XDB,0XDE,0X4B,0X3A,0XF0,0X42,0X35,0X6C,0X54,0X4B,
+0XB1,0X32,0X2E,0X2A,0XEB,0X21,0XA9,0X21,0X67,0X19,0X05,0X19,0X04,0X11,0X04,0X11,
+0X04,0X11,0X04,0X11,0X04,0X11,0X05,0X19,0XE4,0X10,0X42,0X00,0XAF,0X73,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0X5D,0XEF,0X09,0X32,0X4C,0X32,0X10,0X4B,0X8F,0X32,0X4F,0X2A,
+0X2E,0X2A,0XCC,0X19,0X89,0X19,0X89,0X21,0X47,0X19,0X05,0X19,0X04,0X11,0X04,0X11,
+0XC4,0X10,0XC4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,0XE4,0X10,0X42,0X00,0X31,0X84,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XEC,0X52,0X47,0X19,0X4C,0X32,0X0B,0X2A,0XEC,0X21,0XEC,0X21,
+0X0C,0X22,0X91,0X5B,0XEE,0X4A,0X06,0X11,0X26,0X19,0X04,0X19,0XE4,0X10,0XE4,0X10,
+0XA7,0X29,0X66,0X21,0XA3,0X08,0X05,0X19,0X04,0X11,0X04,0X11,0XE4,0X10,0X82,0X00,
+0XF7,0XBD,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0X35,0XA5,0X83,0X08,0X88,0X21,0X88,0X21,0X89,0X21,0XAA,0X21,0X8A,0X21,
+0X6B,0X42,0X71,0X8C,0XFF,0XFF,0X72,0X8C,0X83,0X08,0X04,0X11,0XC4,0X08,0X29,0X42,
+0XFB,0XDE,0X5D,0XEF,0XEC,0X5A,0X83,0X08,0X04,0X11,0X04,0X11,0X04,0X11,0X83,0X08,
+0XE8,0X31,0XDF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XBE,0XF7,0XC7,0X31,0XC4,0X10,0X25,0X19,0X26,0X19,0X47,0X19,0X47,0X19,0XA8,0X29,
+0X8A,0X52,0X28,0X4A,0X55,0XAD,0XFF,0XFF,0XE8,0X31,0XA3,0X08,0X05,0X19,0X4D,0X6B,
+0X4D,0X6B,0XFF,0XFF,0X7D,0XEF,0X45,0X21,0XC4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,
+0X62,0X00,0X76,0XAD,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0X96,0XB5,0X62,0X00,0X04,0X11,0X04,0X19,0X05,0X11,0X05,0X19,0XC4,0X08,0X8B,0X4A,
+0XB6,0XB5,0X5D,0XEF,0XF7,0XBD,0XFF,0XFF,0X8E,0X6B,0X62,0X00,0X29,0X42,0XAA,0X5A,
+0X08,0X42,0XFF,0XFF,0XFF,0XFF,0XCC,0X52,0X83,0X08,0X04,0X11,0X04,0X11,0X04,0X11,
+0XA3,0X08,0XAD,0X52,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X1C,0XE7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0X4E,0X63,0X62,0X00,0X04,0X11,0X04,0X11,0X04,0X11,0XE4,0X10,0X62,0X00,0X8E,0X63,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XCF,0X73,0X01,0X00,0XF3,0X9C,0X2C,0X63,
+0X96,0XB5,0XFF,0XFF,0XFF,0XFF,0X2D,0X5B,0X83,0X00,0X04,0X11,0X04,0X11,0X04,0X11,
+0XE4,0X10,0X67,0X21,0X3D,0XEF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XF8,0XBD,0XB7,0XB5,0X9E,0XEF,0XCB,0X52,0XB3,0X94,0XFF,0XFF,0XFF,0XFF,0XDF,0XFF,
+0XE8,0X31,0XA3,0X08,0X04,0X11,0X04,0X11,0X04,0X11,0X04,0X11,0XA3,0X08,0X49,0X42,
+0XFF,0XF7,0XFF,0XF7,0XFF,0XFF,0XFF,0XFF,0X6A,0X4A,0X01,0X00,0X72,0X84,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XF7,0XDF,0XEF,0X09,0X3A,0XA3,0X08,0X04,0X11,0X04,0X11,0X04,0X11,
+0X04,0X11,0X05,0X11,0X18,0XBE,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XF0,0X7B,0X62,0X00,0XE8,0X31,0XC7,0X31,0X41,0X00,0X35,0XA5,0XFF,0XFF,0X5D,0XEF,
+0X46,0X21,0XC4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,0X04,0X11,0XE4,0X10,0XA3,0X08,
+0X76,0X9D,0XFF,0XF7,0XFF,0XFF,0XB7,0XAD,0XA3,0X08,0XA3,0X08,0XC7,0X31,0X9E,0XE7,
+0XFF,0XF7,0XFF,0XF7,0X76,0XA5,0XA3,0X08,0XE4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,
+0X05,0X11,0X05,0X11,0X35,0XA5,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XDB,0XDE,0XA7,0X29,0X83,0X00,0XC4,0X10,0XC4,0X10,0XC4,0X10,0X1C,0XE7,0X9E,0XEF,
+0X05,0X11,0XE4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,0X04,0X11,0X04,0X19,0XC4,0X08,
+0XE5,0X10,0XD1,0X6B,0XD1,0X6B,0XC5,0X08,0X64,0X00,0XA5,0X08,0X43,0X00,0X2B,0X32,
+0X77,0X9D,0XB3,0X84,0X25,0X19,0XC4,0X10,0X04,0X11,0X04,0X11,0X04,0X11,0X04,0X11,
+0X25,0X19,0X26,0X09,0X35,0X9D,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XAF,0X73,0X62,0X00,0X04,0X19,0X05,0X19,0X82,0X00,0X0D,0X5B,0X8E,0X9B,
+0X62,0X10,0X05,0X11,0X04,0X11,0X04,0X11,0X04,0X19,0XE4,0X10,0X85,0X00,0X05,0X11,
+0XC4,0X39,0X81,0X5A,0X40,0X7B,0X22,0X9C,0X43,0XAC,0X03,0XA4,0X83,0X9B,0X82,0X72,
+0X82,0X49,0XC2,0X18,0XA4,0X00,0XC5,0X00,0XE4,0X10,0X04,0X19,0X04,0X11,0X05,0X19,
+0X47,0X19,0X67,0X11,0XEC,0X5A,0XBE,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XDF,0XFF,0XDB,0XDE,0XC4,0X10,0XE4,0X10,0X04,0X11,0X05,0X11,0XA4,0X18,0X01,0XC0,
+0X83,0X88,0XE4,0X00,0X05,0X19,0X04,0X19,0XC5,0X08,0X44,0X21,0X43,0X83,0X23,0XD5,
+0X42,0XFE,0XE4,0XFE,0X27,0XFF,0X07,0XFF,0XA4,0XFE,0X64,0XFE,0X03,0XFE,0XA3,0XFD,
+0XE2,0XFC,0X42,0XEC,0X83,0XB3,0X24,0X62,0XE5,0X10,0XC4,0X08,0X04,0X19,0X26,0X19,
+0XA8,0X19,0X87,0X21,0X00,0X90,0XD3,0XBC,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XDF,0XFF,0XFF,0XFF,0X10,0X7C,0X42,0X00,0X05,0X19,0X05,0X11,0X83,0X28,0X01,0XD0,
+0X44,0XF8,0XA3,0X48,0XE4,0X00,0XC5,0X08,0X44,0X5A,0X02,0XED,0XE2,0XFD,0X02,0XFE,
+0X66,0XFE,0X74,0XFF,0XB8,0XFF,0X73,0XFF,0XE7,0XF6,0XA6,0XF6,0X45,0XF6,0XA4,0XF5,
+0XC3,0XFC,0X62,0XFC,0XC2,0XFC,0XC2,0XFC,0XE3,0XCB,0XC4,0X49,0X06,0X11,0X88,0X19,
+0X87,0X01,0XA4,0X90,0X01,0XF8,0XEC,0X9A,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XBE,0XF7,0XE8,0X31,0X83,0X00,0X05,0X09,0X82,0X40,0X01,0XC0,
+0X23,0XF8,0X85,0XF0,0XA3,0X48,0XA4,0X00,0X44,0X5A,0X02,0XFD,0X23,0XCC,0XC2,0XDC,
+0X04,0XFE,0X28,0XFE,0X48,0XF6,0X46,0XF6,0X24,0XF6,0XE4,0XF5,0X64,0XFD,0XE3,0XFC,
+0X62,0XFC,0XC2,0XFC,0X02,0XE4,0X02,0XDC,0XE2,0XFC,0XA4,0X7A,0X48,0X01,0X67,0X01,
+0XC4,0X78,0X24,0XF8,0X02,0XF8,0X84,0XB0,0X7D,0XE7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XDB,0XDE,0X25,0X19,0XA3,0X00,0XC4,0X38,0X02,0XE0,
+0X22,0XD8,0X44,0XF8,0XA6,0XF8,0XA4,0X78,0X63,0X00,0X43,0X21,0X83,0X72,0X83,0X39,
+0X82,0X9B,0X21,0XF5,0X61,0XFD,0X22,0XFD,0XE2,0XFC,0XA2,0XFC,0X42,0XFC,0X42,0XFC,
+0X42,0XFC,0X22,0XAB,0X83,0X41,0XC3,0X92,0X04,0X52,0X26,0X01,0X25,0X19,0XA4,0X98,
+0X44,0XF8,0X23,0XF8,0X02,0XF8,0XA4,0XD0,0X9E,0XEF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X9A,0XD6,0X87,0X29,0XA5,0X00,0X43,0XB8,
+0X22,0XF8,0X23,0XE0,0X65,0XF8,0XE8,0XF8,0X07,0XC9,0X83,0X48,0X42,0X00,0XA3,0X00,
+0X84,0X00,0X63,0X29,0XA2,0X7A,0X62,0XB3,0XA2,0XCB,0X62,0XD3,0X02,0XBB,0X82,0X8A,
+0X83,0X39,0XA4,0X00,0XE5,0X00,0XE5,0X00,0XE5,0X08,0XC4,0X60,0X64,0XD8,0X44,0XF8,
+0X24,0XF8,0X23,0XF8,0X02,0XF8,0X83,0X88,0XDB,0XC6,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X3D,0XE7,0X50,0X5B,0X08,0X31,
+0X23,0XE8,0X43,0XF8,0X44,0XF0,0X65,0XF8,0X09,0XF9,0XAB,0XF9,0X89,0XD1,0X06,0X89,
+0XA3,0X48,0X42,0X18,0X02,0X00,0X42,0X00,0X61,0X00,0X82,0X00,0X62,0X00,0X62,0X00,
+0X83,0X00,0XA3,0X20,0XC4,0X50,0XA5,0X88,0X85,0XD8,0X65,0XF8,0X44,0XF8,0X44,0XF8,
+0X23,0XF8,0X23,0XF8,0X03,0XD0,0X82,0X10,0XC7,0X29,0X5D,0XEF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X6C,0X32,
+0XA5,0X38,0X02,0XD8,0X23,0XF8,0X65,0XF8,0X66,0XF8,0XA7,0XF8,0X4A,0XF9,0X0C,0XFA,
+0X4D,0XFA,0X4C,0XEA,0X0B,0XD2,0XA9,0XB9,0X68,0XB1,0X47,0XA9,0X27,0XB1,0X07,0XB9,
+0X07,0XD1,0XE7,0XE8,0XC7,0XF8,0XA7,0XF8,0X65,0XF8,0X65,0XF8,0X44,0XF8,0X23,0XF8,
+0X03,0XF8,0X02,0XD0,0XA3,0X28,0X05,0X09,0XC4,0X08,0XEC,0X5A,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFB,0XDE,0X05,0X19,
+0XC4,0X00,0XA7,0X41,0XE6,0XC0,0X03,0XF8,0X86,0XF8,0XA7,0XF8,0X87,0XF8,0X86,0XF8,
+0XC7,0XF8,0X29,0XF9,0X8A,0XF9,0XAB,0XF9,0XAB,0XF9,0X8B,0XF9,0X6A,0XF9,0X29,0XF9,
+0X08,0XF9,0XC7,0XF8,0XA6,0XF8,0X86,0XF8,0X65,0XF8,0X64,0XF8,0X23,0XF8,0X02,0XF0,
+0X06,0XB1,0X25,0X29,0XE4,0X00,0XE4,0X10,0X25,0X19,0X25,0X19,0X14,0X9D,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X96,0XAD,0X62,0X00,
+0X82,0X08,0X35,0X95,0XBA,0XCE,0X8B,0XA2,0X44,0XD0,0X25,0XF8,0X87,0XF8,0XA7,0XF8,
+0XC7,0XF8,0XA7,0XF8,0X87,0XF8,0X86,0XF8,0X86,0XF8,0X86,0XF8,0X87,0XF8,0XA7,0XF8,
+0XA7,0XF8,0XA6,0XF8,0X85,0XF8,0X65,0XF8,0X64,0XF8,0X24,0XF0,0X64,0XB8,0X0D,0X93,
+0XBB,0XB6,0XCF,0X63,0X83,0X08,0X04,0X11,0XE4,0X10,0X66,0X21,0X49,0X3A,0X5D,0XEF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XD3,0X94,0X42,0X00,
+0XE4,0X10,0XBB,0XCE,0XFF,0XFF,0XBE,0XE7,0X76,0XB5,0XCC,0XAA,0X07,0XC1,0X45,0XE0,
+0X45,0XF8,0X46,0XF8,0X66,0XF8,0X86,0XF8,0X86,0XF8,0X86,0XF8,0X86,0XF8,0X65,0XF8,
+0X45,0XF8,0X65,0XF8,0X65,0XE8,0X44,0XD0,0X43,0XA8,0X01,0X88,0X82,0X90,0X3C,0XD7,
+0XFF,0XEF,0X55,0X95,0X83,0X08,0X04,0X11,0X04,0X11,0X05,0X19,0X46,0X19,0XB3,0X94,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XB3,0X94,0X41,0X00,
+0X86,0X21,0X5D,0XDF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XDF,0XE7,0X7A,0XC6,0XD3,0XB4,
+0X4E,0XB3,0X2A,0XC2,0X68,0XD1,0XE6,0XE0,0XA6,0XE8,0XA5,0XE8,0XA5,0XE8,0XE6,0XD8,
+0X88,0XC9,0X06,0XA9,0X22,0XA8,0X02,0XA8,0X00,0XA0,0X00,0XC8,0X00,0XD8,0XF7,0XE5,
+0XFF,0XE7,0XF8,0XAD,0XC4,0X10,0XE4,0X10,0X04,0X11,0XE4,0X10,0X05,0X11,0X8B,0X4A,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X55,0XA5,0X41,0X00,
+0XA7,0X29,0X5D,0XDF,0XFF,0XF7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XEF,0X7D,0XDF,0XDB,0XCE,0X59,0XCE,0XF8,0XCD,0XD7,0XCD,0XF7,0XC5,0X79,0XCE,
+0XFB,0XBE,0XAB,0XA2,0X03,0XF0,0X45,0XF8,0X42,0XD0,0X43,0XE8,0X00,0XF0,0X72,0XD4,
+0XFF,0XDF,0X39,0XAE,0XE4,0X10,0XE4,0X10,0X04,0X11,0XE4,0X10,0X05,0X11,0X87,0X29,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X59,0XCE,0X83,0X08,
+0X46,0X21,0X1C,0XD7,0XFF,0XF7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XEF,0X8B,0XBA,0X04,0XF8,0X45,0XF8,0X62,0XE0,0X44,0XF0,0X00,0XF8,0X8E,0XDB,
+0XFF,0XDF,0XF8,0XA5,0XC4,0X10,0XE4,0X10,0XE4,0X10,0X04,0X11,0XE4,0X10,0X25,0X19,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XBE,0XF7,0X87,0X29,
+0X83,0X08,0X39,0XB6,0XFF,0XF7,0XDF,0XF7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XBE,0XE7,0X4A,0XBA,0X03,0XF8,0X45,0XF8,0X64,0XF8,0X44,0XF8,0X00,0XF8,0X6E,0XE3,
+0XFF,0XD7,0XF4,0X8C,0X83,0X08,0X04,0X11,0XE4,0X10,0XE4,0X10,0XE4,0X10,0X05,0X19,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XEF,0X73,
+0X00,0X00,0X72,0X84,0XFF,0XEF,0XBE,0XEF,0XDF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XDF,0XE7,0X8B,0XBA,0X03,0XF8,0X45,0XF8,0X45,0XF8,0X23,0XF8,0X00,0XF8,0XD3,0XD4,
+0XFF,0XD7,0X4E,0X5B,0X21,0X00,0X29,0X3A,0X55,0XA5,0X83,0X08,0XC4,0X10,0X25,0X19,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFB,0XDE,
+0XA3,0X08,0XE8,0X31,0X9E,0XDF,0X9E,0XE7,0XBF,0XEF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XF7,0X51,0XBC,0X02,0XE0,0X03,0XF8,0X03,0XF0,0X43,0XE0,0XEC,0XC2,0X7E,0XCF,
+0XFC,0XBE,0X46,0X21,0X21,0X00,0XD3,0X94,0XFF,0XFF,0X51,0X84,0X00,0X00,0X87,0X29,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0X51,0X84,0X00,0X00,0XF4,0X8C,0XFF,0XEF,0X9E,0XE7,0XBF,0XEF,0XDF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0X3D,0XDF,0X55,0XBD,0X52,0XBC,0X72,0XBC,0XB7,0XB5,0X5D,0XC7,0XFF,0XDF,
+0XF0,0X6B,0X00,0X00,0X09,0X3A,0XBF,0XF7,0XFF,0XFF,0XFF,0XFF,0X14,0X9D,0X55,0XA5,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XAC,0X4A,0XA4,0X08,0XBB,0XBE,0XDF,0XE7,0X7E,0XE7,0XBE,0XEF,0XDF,0XF7,
+0XDF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XDF,0XFF,0XDF,0XF7,0XFF,0XEF,0XDF,0XDF,0XBF,0XD7,0X9E,0XD7,0XDF,0XDF,0XD8,0XA5,
+0X83,0X08,0X26,0X11,0XDB,0XD6,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0X79,0XEE,0X8B,0XDC,0X21,0X31,0XA9,0X21,0X3D,0XCF,0XBF,0XDF,0X7E,0XDF,0X9E,0XE7,
+0XBE,0XEF,0XBF,0XEF,0XDF,0XF7,0XDF,0XF7,0XDF,0XF7,0XDF,0XF7,0XDF,0XF7,0XBF,0XEF,
+0XBE,0XEF,0X9E,0XE7,0X7E,0XDF,0X5E,0XD7,0X5E,0XD7,0XDF,0XDF,0X9A,0XB6,0X26,0X19,
+0X42,0X08,0XED,0XA3,0XBF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X74,0XDD,
+0XC0,0XDB,0X00,0XFE,0X42,0XEE,0X02,0X42,0X89,0X21,0X7B,0XB6,0XDF,0XDF,0X7E,0XD7,
+0X7E,0XDF,0X7E,0XDF,0X9E,0XE7,0X9E,0XE7,0X9E,0XE7,0X9E,0XE7,0X9E,0XE7,0X7E,0XDF,
+0X7E,0XDF,0X5D,0XD7,0X5D,0XD7,0X9E,0XDF,0XFF,0XE7,0XF8,0XA5,0X07,0X11,0XE3,0X18,
+0X02,0XC5,0X60,0XFD,0XE6,0XD3,0XDB,0XEE,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X9E,0XF7,0X84,0XBA,
+0XC1,0XFC,0X42,0XFE,0X82,0XFE,0XA2,0XFE,0X81,0X83,0X45,0X21,0X74,0X74,0X5E,0XC7,
+0XDF,0XDF,0X7E,0XD7,0X5E,0XD7,0X5D,0XD7,0X5E,0XD7,0X5E,0XD7,0X5D,0XD7,0X5D,0XD7,
+0X5E,0XD7,0X9E,0XDF,0XFF,0XE7,0X3D,0XC7,0XF1,0X63,0X84,0X08,0X42,0X52,0X26,0XE6,
+0X29,0XFF,0X86,0XFE,0XE0,0XF3,0X6A,0XC3,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X18,0XDE,0XC1,0XD2,
+0XA2,0XFD,0X22,0XFE,0X42,0XFE,0X42,0XFE,0X62,0XFE,0XE2,0XD4,0X41,0X6A,0X49,0X42,
+0X53,0X74,0X3B,0XA6,0X3E,0XC7,0XBF,0XD7,0XBF,0XD7,0XBF,0XD7,0XBF,0XDF,0XBF,0XD7,
+0X3E,0XC7,0X1A,0XA6,0XF2,0X63,0XA7,0X29,0X82,0X41,0X22,0XB4,0X62,0XFE,0X83,0XFE,
+0XAA,0XFE,0X0F,0XFF,0X67,0XFD,0X63,0XBA,0X3C,0XEF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0X9A,0XE6,0X80,0XD2,
+0X21,0XFD,0XC2,0XFD,0XE2,0XF5,0XC2,0XF5,0X82,0XF5,0X82,0XFD,0X62,0XFD,0X61,0XDC,
+0X21,0X9B,0X84,0X6A,0XE9,0X6A,0X2C,0X63,0XAF,0X63,0X11,0X74,0X6E,0X63,0X2C,0X63,
+0X89,0X5A,0X04,0X52,0X81,0X7A,0XC2,0XCB,0XE2,0XFC,0X62,0XFD,0X82,0XFD,0XC2,0XFD,
+0XC2,0XFD,0XE4,0XFD,0X24,0XFD,0X62,0XCA,0X1C,0XE7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XB1,0XCC,
+0X81,0XD2,0XC0,0XF3,0XC1,0XFC,0X02,0XFD,0X02,0XFD,0XE2,0XFC,0XC2,0XFC,0XC2,0XFC,
+0X81,0XFC,0X80,0XFB,0XC0,0XC9,0XA4,0X81,0X35,0XAD,0X59,0XCE,0X71,0X9C,0X21,0X81,
+0X00,0XDA,0XA1,0XFB,0X82,0XFC,0XA2,0XFC,0X82,0XFC,0XA2,0XFC,0X02,0XFD,0X22,0XFD,
+0XE2,0XFC,0X00,0XFC,0X60,0XDA,0X90,0XCC,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+0X59,0XDE,0X0D,0XC4,0X06,0XCB,0XE4,0XD2,0X03,0XDB,0X03,0XDB,0XE3,0XDA,0XC3,0XD2,
+0XA4,0XC2,0X09,0XB3,0XD2,0XBC,0X9E,0XF7,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFB,0XE6,
+0X0E,0XB4,0XA6,0XBA,0X83,0XD2,0XE3,0XE2,0X02,0XEB,0X22,0XEB,0X22,0XE3,0X03,0XDB,
+0XE4,0XD2,0X6A,0XC3,0XB6,0XD5,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,0XFF,
+};
+#endif
+uint16_t readdata =0;
+u16 ColorTab[]={RED,GREEN,BLUE,YELLOW};//定义颜色数组
+u16 ColornTab[]={RED,MAGENTA,GREEN,BLUE,BLACK};
+UG_GUI gui1;
+int pen_state =0;
+void gpio_config(void)
+{
+	 rcu_periph_clock_enable(RCU_GPIOA);
+	 rcu_periph_clock_enable(RCU_GPIOB);
+    /* SPI0 GPIO config:SCK/PA5, MISO/PA6, MOSI/PA7 */
+    gpio_init(GPIOA, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_5 | GPIO_PIN_7);
+    gpio_init(GPIOA, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_10MHZ, GPIO_PIN_6);
+
+
+    gpio_init(GPIOB, GPIO_MODE_OUT_PP, GPIO_OSPEED_10MHZ, GPIO_PIN_6);//PB10 CS
+
+
+    gpio_init(GPIOB, GPIO_MODE_IN_FLOATING, GPIO_OSPEED_10MHZ, GPIO_PIN_8);//PEN PB8
+}
+
+//void lv_example_led_1(void)
+//{
+//    /*Create a LED and switch it OFF*/
+//    lv_obj_t * led1  = lv_led_create(lv_scr_act());
+//    lv_obj_align(led1, LV_ALIGN_CENTER, -80, 0);
+//    lv_led_off(led1);
+//
+//    /*Copy the previous LED and set a brightness*/
+//    lv_obj_t * led2  = lv_led_create(lv_scr_act());
+//    lv_obj_align(led2, LV_ALIGN_CENTER, 0, 0);
+//    lv_led_set_brightness(led2, 150);
+//    lv_led_set_color(led2, lv_palette_main(LV_PALETTE_RED));
+//
+//    /*Copy the previous LED and switch it ON*/
+//    lv_obj_t * led3  = lv_led_create(lv_scr_act());
+//    lv_obj_align(led3, LV_ALIGN_CENTER, 80, 0);
+//    lv_led_on(led3);
+//}
+void my_GUI_DrawPoint(UG_S16 x , UG_S16 y ,UG_COLOR c )
+{
+	GUI_DrawPoint(x,y,c);
+}
+
+
+void HW_DrawLine( UG_S16 x1 , UG_S16 y1 , UG_S16 x2 , UG_S16 y2 , UG_COLOR c )
+{
+	LCD_DrawLine(x1,  y1,  x2,  y2);
+}
+
+
+void HW_FillFrame( UG_S16 x1 , UG_S16 y1 , UG_S16 x2 , UG_S16 y2 , UG_COLOR c )
+{
+	LCD_DrawFillRectangle(x1,y1,x2,y2,c);
+}
+#define MAX_OBJECTS 10
+UG_WINDOW window_1 ;
+UG_WINDOW window_2 ;
+UG_WINDOW window_3;
+   UG_BUTTON button_1 ;
+   UG_BUTTON button1_1;
+   UG_BUTTON button1_2;
+   UG_BUTTON button1_3;
+   UG_BUTTON button1_4;
+   UG_BUTTON button1_5;
+   UG_BUTTON button1_6;
+   UG_OBJECT obj_buff_wnd_1[10];
+   UG_OBJECT obj_buff_wnd_2[10];
+   UG_CHECKBOX checkbox1;
+   UG_BUTTON button3_1;
+   UG_TEXTBOX textbox3_1;
+   UG_BUTTON button2_1;
+   UG_TEXTBOX textbox2_1;
+   UG_TEXTBOX textbox2_2;
+   uint16_t tocuh_flag  =0;
+   uint16_t touch_flag2 = 0;
+   volatile UG_U32 hw_acc = 0;
+   int abc =0;
+   int abc2 =0;
+   int abc3 =0;
+   int abc4 =0;
+   int abc5 =0;
+   UG_OBJECT obj_buff_wnd_3[MAX_OBJECTS];
+
+   void  window_2_callback(UG_MESSAGE* msg )
+   {
+	   if ( msg->type == MSG_TYPE_OBJECT )
+	      {
+	         if ( msg->id == OBJ_TYPE_BUTTON )
+	         {
+
+	        	 {
+
+	        		 switch( msg->sub_id )
+	        		 {
+	        		 	 case BTN_ID_0:
+	        		 	 {
+	        		 		if(window_2.objlst[0].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+	        		 		{
+
+	        		 			UG_WindowHide( &window_2 );
+	        		 		window_2.objlst[0].touch_state = 16;
+	        		 		window_1.objlst[4].touch_state = 16;
+	        		 		}
+	                     break;
+	        		 	 }
+	        		 }
+	        	 }
+	         }
+	      }
+
+   }
+   void window_1_callback(UG_MESSAGE* msg )
+   {
+
+	   if( msg->type == MSG_TYPE_OBJECT )
+	   {
+
+
+		   {
+		   if ( msg->id == OBJ_TYPE_BUTTON )
+		   {
+			   switch ( msg->sub_id )
+			   {
+
+			   	   case BTN_ID_0:
+				   {
+					   if(window_1.objlst[0].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+					   gd_rvstar_led_toggle(LED1);
+					   break;
+				   }
+
+			   	   case BTN_ID_1:
+				   {
+					   if(window_1.objlst[1].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+					   gd_rvstar_led_toggle(LED2);
+					   break;
+				   }
+			   	   case BTN_ID_2:
+				   {
+					   if(window_1.objlst[2].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+					   gd_rvstar_led_toggle(LED3);
+
+
+					   break;
+				   }
+			   	   case BTN_ID_3:
+				   {
+					   if(window_1.objlst[3].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+					   {
+
+						   gd_rvstar_led_toggle(LED3);
+							 if ( hw_acc )
+						    	{
+						    						   		UG_ButtonSetForeColor( &window_1, 4, C_RED );
+						    						   		UG_ButtonSetText( &window_1, 4, "OFF" );
+						    						   		UG_DriverEnable( DRIVER_DRAW_LINE );
+						    						   		UG_DriverEnable( DRIVER_FILL_FRAME );
+						    	}
+						    	else
+						    	{
+						    						   		UG_ButtonSetForeColor( &window_1, 4, C_BLUE );
+						    						   		UG_ButtonSetText( &window_1, 4, "ON" );
+						    						   		UG_DriverDisable( DRIVER_DRAW_LINE );
+						    						   		UG_DriverDisable( DRIVER_FILL_FRAME );
+						    	}
+
+							 hw_acc = !hw_acc;
+					   }
+
+					   break;
+				   }
+
+			   	 case BTN_ID_4: /* Resize window */
+			   			{
+			   				 if(window_1.objlst[4].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+
+			   				   	 UG_WindowShow( &window_2 );
+			   				   	 break;
+
+			   		}
+			   	 case BTN_ID_5: /* Resize window */
+			   	            {
+			   	            	if(window_1.objlst[5].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+
+			   	            		UG_WindowShow( &window_3 );
+			   	             break;
+
+			   	            }
+			   }
+		   }
+		   }
+	   }
+   }
+   /* Callback function for the result window */
+   void window_3_callback( UG_MESSAGE* msg )
+   {
+      if ( msg->type == MSG_TYPE_OBJECT )
+      {
+         if ( msg->id == OBJ_TYPE_BUTTON )
+         {
+            switch( msg->sub_id )
+            {
+               /* OK button */
+               case BTN_ID_0:
+               {
+            	   if(window_3.objlst[1].touch_state&OBJ_TOUCH_STATE_RELEASED_ON_OBJECT)
+            	   {
+
+            		   UG_WindowHide( &window_3 );
+
+            		   window_3.objlst[1].touch_state = 16;
+            		   window_1.objlst[5].touch_state = 16;
+
+            	   }
+                  break;
+               }
+            }
+         }
+      }
+   }
+
+int main(void)
+{
+    uint16_t i;
+
+# if 1
+	u16 j=0;
+	u16 colorTemp=0;
+   // rcu_ahb_clock_config(54);
+    /* configure the EXMC access mode */
+	gpio_config();
+    exmc_lcd_init();
+    delay_1ms(10);
+    LCD_Init();
+
+    gd_rvstar_led_init(LED1);
+    gd_rvstar_led_init(LED2);
+    gd_rvstar_led_init(LED3);
+    gd_rvstar_led_off(LED1);
+    gd_rvstar_led_off(LED2);
+    gd_rvstar_led_off(LED3);
+    eclic_global_interrupt_enable();
+    eclic_set_nlbits(ECLIC_GROUP_LEVEL3_PRIO1);
+    eclic_irq_enable(TIMER1_IRQn,1,0);
+    timer_config();
+    //LCD_DrawLine(30,50,30,160);
+   // LCD_DrawLine(100,50,100,60);
+//	Gui_Drawbmp16(30,90,gImage_qq);
+
+
+
+    GUI_DrawPoint(10,10,0);
+    UG_Init(&gui1, (void(*)(UG_S16,UG_S16,UG_COLOR))my_GUI_DrawPoint,240,320);
+    UG_DriverRegister(DRIVER_DRAW_LINE, ( void *) HW_DrawLine ) ;
+    UG_DriverRegister( DRIVER_FILL_FRAME, ( void *) HW_FillFrame ) ;
+    UG_DriverEnable( DRIVER_DRAW_LINE ) ;
+    UG_DriverEnable ( DRIVER_FILL_FRAME) ;
+   // LCD_DrawFillRectangle(10,10,30,30,0);
+#endif
+
+    UG_WindowCreate( &window_1, obj_buff_wnd_1, 10, window_1_callback );
+
+    UG_WindowSetTitleText( &window_1, "icore  RV STAR" );
+    UG_WindowSetTitleTextColor( &window_1, C_BLACK);
+    UG_WindowSetTitleTextFont( &window_1, &FONT_12X20);
+    UG_ButtonCreate( &window_1, &button1_1, BTN_ID_0, 10, 10, 110, 60 );
+    UG_ButtonCreate( &window_1, &button1_2, BTN_ID_1, 10, 80, 110, 130 );
+    UG_ButtonCreate( &window_1, &button1_3, BTN_ID_2, 10, 150, 110,200 );
+    UG_ButtonCreate( &window_1, &button1_4, BTN_ID_3, 120, 10, UG_WindowGetInnerWidth( &window_1 ) - 10 , 60 );
+    UG_ButtonCreate( &window_1, &button1_5, BTN_ID_4, 120, 80, UG_WindowGetInnerWidth( &window_1 ) - 10, 130 );
+    UG_ButtonCreate( &window_1, &button1_6, BTN_ID_5, 120, 150, UG_WindowGetInnerWidth( &window_1 ) - 10, 200 );
+    UG_ButtonSetFont( &window_1, BTN_ID_0, &FONT_12X20 );
+    UG_ButtonSetBackColor( &window_1, BTN_ID_0, C_FOREST_GREEN );
+    UG_ButtonSetText( &window_1, BTN_ID_0, "GREEN" );
+    	      /* Configure Button 2 */
+    UG_ButtonSetFont( &window_1, BTN_ID_1, &FONT_12X20 );
+    UG_ButtonSetBackColor( &window_1, BTN_ID_1, C_BLUE );
+    UG_ButtonSetText( &window_1, BTN_ID_1, "BLUE" );
+    	      /* Configure Button 3 */
+    UG_ButtonSetFont( &window_1, BTN_ID_2, &FONT_16X26 );
+    UG_ButtonSetText( &window_1, BTN_ID_2, "RED" );
+    UG_ButtonSetBackColor( &window_1, BTN_ID_2, C_RED );
+
+
+    	      /* Configure Button 4 */
+    UG_ButtonSetFont( &window_1, BTN_ID_3, &FONT_16X26 );
+    UG_ButtonSetForeColor( &window_1, BTN_ID_3, C_RED );
+    UG_ButtonSetText( &window_1, BTN_ID_3, "OPEN" );
+    	        /* Configure Button 5 */
+    UG_ButtonSetFont( &window_1, BTN_ID_4, &FONT_12X20 );
+    UG_ButtonSetText( &window_1, BTN_ID_4, "ABOUT" );
+    	           /* Configure Button 6 */
+    UG_ButtonSetFont( &window_1, BTN_ID_5, &FONT_16X26);
+    UG_ButtonSetText( &window_1, BTN_ID_5, "FIRE!" );
+
+
+    UG_WindowCreate( &window_2, obj_buff_wnd_2, MAX_OBJECTS, window_2_callback );
+    UG_WindowSetTitleText( &window_2, "Info" );
+    UG_WindowSetTitleTextFont( &window_2, &FONT_12X20 );
+    // UG_WindowResize( &window_2, 20, 40, 219, 300 );
+
+    	              /* Create Button 1 */
+    UG_ButtonCreate( &window_2, &button2_1, BTN_ID_0, 60, 100, 180, 150 );
+    UG_ButtonSetFont( &window_2, BTN_ID_0, &FONT_12X20 );
+    UG_ButtonSetText( &window_2, BTN_ID_0, "RETURN!" );
+
+    	              /* Create Textbox 1 */
+    UG_TextboxCreate( &window_2, &textbox2_1, TXB_ID_0, 10, 10, UG_WindowGetInnerWidth( &window_2 )-10, 40 );
+    UG_TextboxSetFont( &window_2, TXB_ID_0, &FONT_16X26 );
+    UG_TextboxSetText( &window_2, TXB_ID_0, "GUI v0.3" );
+    UG_TextboxSetAlignment( &window_2, TXB_ID_0, ALIGN_TOP_CENTER );
+
+    UG_WindowCreate( &window_3, obj_buff_wnd_3, MAX_OBJECTS, window_3_callback );
+    UG_WindowSetTitleText( &window_3, "engine start" );
+    UG_WindowSetTitleTextFont( &window_3, &FONT_10X16 );
+   // UG_WindowResize( &window_3, 20, 60, 219, 300 );
+
+    	            /* Create Textbox 1 */
+    UG_TextboxCreate( &window_3, &textbox3_1, TXB_ID_0, 5, 25, 220, 120 );
+    UG_TextboxSetFont( &window_3, TXB_ID_0, &FONT_16X26);
+    UG_TextboxSetText( &window_3, TXB_ID_0, "cannot start:\n because of \n no key!");
+    UG_TextboxSetAlignment( &window_3, TXB_ID_0, ALIGN_TOP_LEFT );
+
+    	            /* Create Button 1 */
+    UG_ButtonCreate( &window_3, &button3_1, BTN_ID_0, 40, 125, 180, 210 );
+    UG_ButtonSetFont( &window_3, BTN_ID_0, &FONT_32X53 );
+    UG_ButtonSetText( &window_3, BTN_ID_0, "OK!" );
+
+       UG_WindowShow( &window_1 );
+
+    UG_TouchUpdate(-1,-1,TOUCH_STATE_RELEASED);	//触摸坐标更新
+
+    while(1){
+
+    	abc =window_1.objlst[0].touch_state;
+    	abc4 =window_1.objlst[1].touch_state;
+    	abc5 =window_1.objlst[3].touch_state;
+    	abc2=window_1.objlst[5].touch_state;
+    	abc3 =window_3.objlst[1].touch_state;
+
+
+    	pen_state = gpio_input_bit_get(GPIOB,GPIO_PIN_8);
+		if(gpio_input_bit_get(GPIOB,GPIO_PIN_8)==0)//有按键按下
+    	{
+
+			delay_1ms(10);
+			if(gpio_input_bit_get(GPIOB,GPIO_PIN_8)==0)//有按键按下
+			{
+    	   	  TP_Read_XY2(&touch_x,&touch_y);
+    	   	touch_x_T = (uint16_t)(touch_x*240/4095);
+        	touch_y_T = (uint16_t)(touch_y*320/4095);
+        	if((touch_x_T>0)&&(touch_x_T<239)&&((touch_y_T>0)&&(touch_y_T<319)))
+        	{
+
+    				{
+
+    					//gd_rvstar_led_toggle(LED2);
+    					UG_TouchUpdate(touch_x_T,touch_y_T,TOUCH_STATE_PRESSED);	//触摸坐标更新
+    				}
+
+
+        		}
+
+    	}
+    	}
+        	else
+    	    	{
+    	    		   UG_TouchUpdate(-1,-1,TOUCH_STATE_RELEASED);	//触摸坐标更新
+    	    	}
+
+
+
+#if 0
+    	  TP_Read_XY(&tp_dev.x,&tp_dev.y);//第一次读取初始化
+    	    LCD_Clear(WHITE);//清屏
+    	    TP_Adjust();
+
+
+    	    		tp_dev.scan(0);
+    	    		if(tp_dev.sta&TP_PRES_DOWN)			//触摸屏被按下
+    	    		{
+    	    		 	if(tp_dev.x<lcddev.width&&tp_dev.y<lcddev.height)
+    	    			{
+    	    				if(tp_dev.x>(lcddev.width-24)&&tp_dev.y<16)
+    	    				{
+    	    					//DrawTestPage("测试10:Touch(按KEY0校准)      ");//清除
+    	    					LCD_ShowString(lcddev.width-24,0,16,"RST",1);//显示清屏区域
+    	    					POINT_COLOR=colorTemp;
+    	    					LCD_Fill(lcddev.width-50,2,lcddev.width-50+22,18,POINT_COLOR);
+    	    				}
+    	    				else if((tp_dev.x>(lcddev.width-50)&&tp_dev.x<(lcddev.width-50+22))&&tp_dev.y<20)
+    	    				{
+    	    				LCD_Fill(lcddev.width-50,2,lcddev.width-50+22,18,ColorTab[j%5]);
+    	    				POINT_COLOR=ColorTab[(j++)%5];
+    	    				colorTemp=POINT_COLOR;
+    	    				delay_1ms(10);
+    	    				}
+
+    	    				else TP_Draw_Big_Point(tp_dev.x,tp_dev.y,POINT_COLOR);		//画图
+    	    			}
+    	    		}else delay_1ms(10);	//没有按键按下的时候
+
+//    	    		{
+//
+//    	    			LCD_Clear(WHITE);//清屏
+//    	    		    TP_Adjust();  //屏幕校准
+//    	    			//TP_Save_Adjdata();
+//    	    			//DrawTestPage("测试10:Touch(按KEY0校准)      ");
+//    	    			LCD_ShowString(lcddev.width-24,0,16,"RST",1);//显示清屏区域
+//    	    			POINT_COLOR=colorTemp;
+//    	    			LCD_Fill(lcddev.width-50,2,lcddev.width-50+22,18,POINT_COLOR);
+//    	    		}
+    	    		i++;
+    	    		if(i==30)
+    	    		{
+    	    			i=0;
+
+    	    			//break;
+    	    		}
+#endif
+    	    		// UG_Update() ;
+
+    	    		  //Gui_Drawbmp16(100,230,gImage_qq);
+
+    	    		//lv_task_handler();
+    }
+}
+
+/**
+    \brief      configure the TIMER peripheral
+    \param[in]  none
+    \param[out] none
+    \retval     none
+  */
+void timer_config(void)
+{
+    /* ----------------------------------------------------------------------------
+    TIMER1 Configuration:
+    TIMER1CLK = SystemCoreClock/5400 = 20KHz.
+    TIMER1 configuration is timing mode, and the timing is 0.2s(4000/20000 = 0.2s).
+    CH0 update rate = TIMER1 counter clock/CH0CV = 20000/4000 = 5Hz.
+    ---------------------------------------------------------------------------- */
+    timer_oc_parameter_struct timer_ocinitpara;
+    timer_parameter_struct timer_initpara;
+
+    rcu_periph_clock_enable(RCU_TIMER1);
+
+    timer_deinit(TIMER1);
+    /* initialize TIMER init parameter struct */
+    timer_struct_para_init(&timer_initpara);
+    /* TIMER1 configuration */
+    timer_initpara.prescaler         = 5399;
+    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
+    timer_initpara.counterdirection  = TIMER_COUNTER_UP;
+    timer_initpara.period            = 2000;
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV2;
+    timer_init(TIMER1, &timer_initpara);
+#if 1
+    /* initialize TIMER channel output parameter struct */
+    timer_channel_output_struct_para_init(&timer_ocinitpara);
+    /* CH0,CH1 and CH2 configuration in OC timing mode */
+    timer_ocinitpara.outputstate  = TIMER_CCX_ENABLE;
+    timer_ocinitpara.ocpolarity   = TIMER_OC_POLARITY_HIGH;
+    timer_ocinitpara.ocidlestate  = TIMER_OC_IDLE_STATE_LOW;
+    timer_channel_output_config(TIMER1, TIMER_CH_0, &timer_ocinitpara);
+
+    /* CH0 configuration in OC timing mode */
+    timer_channel_output_pulse_value_config(TIMER1, TIMER_CH_0, 2000);
+    timer_channel_output_mode_config(TIMER1, TIMER_CH_0, TIMER_OC_MODE_TIMING);
+    timer_channel_output_shadow_config(TIMER1, TIMER_CH_0, TIMER_OC_SHADOW_DISABLE);
+#endif
+    timer_interrupt_enable(TIMER1, TIMER_INT_CH0);
+    timer_enable(TIMER1);
+}
+
+/**
+  * @brief  This function handles TIMER1 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIMER1_IRQHandler(void)
+{
+    if(SET == timer_interrupt_flag_get(TIMER1, TIMER_INT_CH0)){
+        /* clear channel 0 interrupt bit */
+        timer_interrupt_flag_clear(TIMER1, TIMER_INT_CH0);
+        Gui_StrCenter(50,36,BLACK,C_YELLOW,"中 微 爱 芯 潘 工",16,0);
+        UG_Update() ; // lv_tick_inc(1);//lvgl 的 1ms 心跳
+
+        //gd_rvstar_led_toggle(LED2);
+
+    }
+}
